@@ -1,83 +1,68 @@
 #ifndef SERVER
 #define SERVER
 
-#include "user.hpp"
+#include <string>
+#include <iostream>
 #include "client.hpp"
-#include "client_user.hpp"
 #include <list>
-#include "text.hpp"
-#include <time.h>
-
-#define SERVER_KEY 3
-#define CONNECT_KEY 0
-#define LOGIN_KEY 1
-#define CHAT_KEY 2
 
 class Server {
 
 private:
-
-    std::size_t m_key[SERVER_KEY];
-    //m_key[0] = connect
-    //m_key[1] = login
-    //m_key[2] = connect_chat
+    std::list<Client*> m_clients;
     std::list<User> m_users;
-    std::list<Client_User> m_cl_us_map;
     std::list<Message> m_chat;
 
-    void show_key() {
-        for(std::size_t count = 0; count < SERVER_KEY; ++count) {
-            std::cout << m_key[count] << std::endl;
-        } 
-    }
-
-    bool nickname_check(std::string_view nick) {
-        for(auto& record : m_users) {
-            if(record.m_nick == nick) {
-                return false;
-            }
+    bool chat_password() {
+        std::cout << "year of foundation of St. Petersburg?" << std::endl;
+        Text pass;
+        if (pass.get_text() == "1703") {
+            return true;
         }
-        return true;
+        return false;
     }
 
-    Client_User* client_user_map(Client* client) {
-        for(Client_User& search : m_cl_us_map) {
-            if(search.get_cptr() == client) {
-                return &search;
+protected:
+
+    User* nickname_check(std::string& nick) noexcept {
+        for (auto it = m_users.begin(); it != m_users.cend(); ++it) {
+            if (it->m_nick == nick) {
+                return it->g_ptr();
             }
         }
         return nullptr;
     }
 
-    void push_message(Client* client) {
-        for(auto& search : m_cl_us_map) {
-            if(search.get_cptr() == client) {
-                auto user = search.get_uptr();
-                for(auto& record : user->m_message) {
-                    client->message_accept(std::move(record));
-                }
-                user->m_message.clear();
+    Client* client_search(Client* client) noexcept {
+        for (auto record : m_clients) {
+            if (record == client) {
+                return record;
             }
         }
+        return nullptr;
     }
 
-    void chat_read(Client* client) {
+    void push_message(Client* client) noexcept {
+        for (auto& record : client->m_user->m_message) {
+            client->message_accept(std::move(record));
+        }
+        client->m_user->m_message.clear();
+    }
+
+    void chat_read(Client* client) noexcept {
         for(auto it = m_chat.begin(); it != m_chat.end(); ++it) {
             client->message_accept(*it);
         }
     }
 
-    void welcome(std::string_view nickname) {
+    void welcome(std::string_view nickname) noexcept {
         std::cout << "\033[31mWelcome :\033[37m" << nickname << std::endl;
     }
 
 public:
 
     Server() {
-        srand(static_cast<std::size_t>(time(0)));
-        for (std::size_t count = 0; count < SERVER_KEY; ++count) {
-            m_key[count] = rand();
-        }
+
     }
 
     ~Server() = default;
@@ -86,128 +71,154 @@ public:
         return m_users.size();
     }
 
-    void connect(Client* client) {
-        m_cl_us_map.push_back(client);
-        client->m_connect_key = m_key[0];
+    void user_print(Client* client) noexcept {
+        for (auto& record : m_users) {
+            std::cout << record.get_nick() << std::endl;
+        }
     }
 
-    void disconnection(Client* client) {
-        for(auto it = m_cl_us_map.begin(); it != m_cl_us_map.end(); ++it) {
-            if(it->get_cptr() == client) {
-                client->m_gchat_key = 0;
-                client->m_login_key = 0;
-                client->m_connect_key = 0;
-                m_cl_us_map.erase(it);
-                return;
+    std::ostream& get_user(std::ostream& out, Client* client) noexcept {
+        for (auto& record : m_users) {
+            out << record.get_nick() << ", ";
+        }
+        return out;
+    }
+
+    void connect(Client* client) noexcept {
+        m_clients.push_back(client);
+    }
+
+    void disconnection(Client* client) noexcept {
+        client->m_user = nullptr;
+        client->m_chat_pass = false;
+        client->m_server = nullptr;
+        for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
+            if (*it == client) {
+                m_clients.erase(it);
             }
         }
     }
 
     void server_exit(Client* client) noexcept {
-        for(auto it = m_cl_us_map.begin(); it != m_cl_us_map.end(); ++it) {
-            if(it->m_client_ptr == client) {
-                client->m_gchat_key = 0;
-                client->m_login_key = 0;
-                it->m_user_ptr = nullptr;
-                return;
-            }
-        }
+        client->m_user = nullptr;
+        client->m_chat_pass = false;
     }
 
     void new_user(Client* client) {
-        if (client->m_connect_key == m_key[CONNECT_KEY]) {
-            Text nickname(TEXT_NICKNAME);
-            if (nickname_check(nickname.get_text())) {
-                auto record = client_user_map(client);
+        if (!(client->m_user)) {
+            Text nickname(NICKNAME);
+            if (!(nickname_check(nickname.get_text()))) {
                 m_users.push_back(User(nickname.get_text()));
-                record->m_user_ptr = &m_users.back();
-                client->m_login_key = m_key[LOGIN_KEY];
-                welcome(record->m_user_ptr->get_user_nick());
+                client->m_user = &m_users.back();
+                welcome(nickname.get_text());
             } else {
                 throw std::runtime_error("Nickname is used!");
             }
         } else {
-            throw std::runtime_error("Connect error: client was not connected/attested!");
-        }
-    }
-
-    void who_online(Client* client) noexcept {
-        std::cout << "Online is :" << std::endl;
-        for(auto& search : m_cl_us_map) {
-            if(search.m_client_ptr && search.m_user_ptr) {
-                std::cout << search.m_user_ptr->get_user_nick() << std::endl;
-            }
+            server_exit(client);
+            new_user(client);
         }
     }
 
     void login(Client* client) {
-        if(client->m_connect_key == m_key[CONNECT_KEY]) {
-            if(!(client->m_login_key == m_key[LOGIN_KEY])) {
-                auto record = client_user_map(client);
-                Text request(TEXT_NICKNAME);
-                for(User& user : m_users) {
-                    if(user.m_nick == request.get_text()) {
-                        request.set_text(TEXT_PASSWORD);
-                        if(user.m_password == request.get_text()) {
-                            record->m_user_ptr = &user;
-                            client->m_login_key = m_key[LOGIN_KEY];
-                            welcome(record->m_user_ptr->get_user_nick());
-                            if(user.m_message.size()) {
-                                client->new_message();
-                                push_message(client);
-                                return;
-                            }
-                        } else {
-                            throw std::runtime_error("Invalid password!");
+        if (client_search(client)) {
+            if (!(client->m_user)) {
+                Text quest(NICKNAME);
+                if (auto ptr = nickname_check(quest.get_text())) {
+                    quest.set_text(PASSWORD);
+                    if (quest.get_text() == ptr->m_password) {
+                        client->m_user = ptr;
+                        welcome(ptr->get_nick());
+                        if (ptr->m_message.size()) {
+                            client->new_message();
+                            push_message(client);
                         }
                     }
+                } else {
+                    throw std::runtime_error("User was not fund!");
                 }
-                throw std::runtime_error("\033[34mUser was not fund!\033[37m");
             } else {
-                throw std::runtime_error("You have already entered a password/account certified!");
+                server_exit(client);
+                login(client);
             }
         } else {
-            throw std::runtime_error("Client was not connected/attested!");
+            connect(client);
+            login(client);
         }
     }
 
-    void message_to(Client* client) {
-        if(client->m_login_key == m_key[LOGIN_KEY]) {
-            Text search_user(TEXT_NICKNAME);
-            for(auto& record : m_users) {
-                if(record.m_nick == search_user.get_text()) {
-                    record.m_message.push_back(Message{Text(TEXT_MESSAGE).get_text(), client_user_map(client)->m_user_ptr->get_user_nick()});
-                    return;
+    void who_online_print(Client* client) noexcept {
+        if (client->m_user) {
+            for (auto record : m_clients) {
+                if (record->m_server && record->m_user) {
+                    if (client->m_user->m_nick != record->m_user->get_nick()) {
+                        std::cout << record->m_user->get_nick() << '\n';
+                    }
                 }
             }
-            throw std::runtime_error("Nick/user was not fund!");
         } else {
-            throw std::runtime_error("Please log in!");
+            login(client);
         }
     }
 
-    void chat_connect(Client* client) {
-        if(client->m_login_key == m_key[LOGIN_KEY]) {
-            auto record = client_user_map(client);
-            if(record->m_user_ptr->m_password == Text(TEXT_PASSWORD).get_text()) {
-                client->m_gchat_key = m_key[CHAT_KEY];
-                if(m_chat.size()) {
+    std::ostream& get_user_online(std::ostream& out, Client* client) {
+        if (client->m_user) {
+            for (auto& record : m_clients) {
+                if ((client->m_user->m_nick != record->m_user->get_nick())) {
+                    if (record->m_server && record->m_user) {
+                        out << record->m_user->get_nick() << ", ";
+                    }
+                }
+            }
+            return out;
+        } else {
+            login(client);
+            get_user_online(out, client);
+            return out;
+        }
+    }
+
+    void send_to(Client* client) {
+        if (client->m_user) {
+            Text search(SEARCH_NICK);
+            if (auto ptr = nickname_check(search.get_text())) {
+                search.set_text(MESSAGE);
+                ptr->m_message.push_back(Message{search.get_text(), client->m_user->get_nick()});
+            } else {
+                throw std::runtime_error("User was not fund");
+            }
+        } else {
+            login(client);
+            send_to(client);
+        }
+    }
+
+    void chat_connect(Client* client) noexcept {
+        if (client->m_user) {
+            if (chat_password()) {
+                client->m_chat_pass = true;
+                if (m_chat.size()) {
                     chat_read(client);
                 }
-            } else {
-                throw std::runtime_error("Invalid password");
             }
         }
     }
 
-    void chat_message(Client* client) noexcept {
-        if(client->m_gchat_key == m_key[CHAT_KEY]) {
-            auto record = client_user_map(client);
-            m_chat.push_back(Message{Text(TEXT_MESSAGE).get_text(), record->m_user_ptr->get_user_nick()});
+    void send_to_chat(Client* client) noexcept {
+        if (client->m_user) {
+            if (client->m_chat_pass) {
+                Text message(MESSAGE);
+                m_chat.push_back(Message{message.get_text(), client->m_user->get_nick()});
+            } else {
+                chat_connect(client);
+                send_to_chat(client);
+            }
         } else {
-            chat_connect(client);
-            chat_message(client);
+            login(client);
+            send_to_chat(client);
         }
     }
+
+    friend class User;
 };
 #endif
