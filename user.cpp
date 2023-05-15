@@ -1,5 +1,5 @@
-#include "user.hpp"
-#include "server.hpp"
+
+#include "headers/server.hpp"
 
 User::User(std::string& nick)
 : m_nick(nick)

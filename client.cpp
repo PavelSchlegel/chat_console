@@ -1,6 +1,4 @@
-#include "client.hpp"
-#include "server.hpp"
-
+#include "headers/server.hpp"
 
 Client::Client()
 : m_user(nullptr)
