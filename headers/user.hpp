@@ -17,7 +17,9 @@ class User {
 public:
     
     std::string m_nick;
-    std::string m_password;
+    //пароль в открытом виде...на hash
+    std::size_t m_pass_hash;
+    //std::string m_password;
     std::vector<Message> m_message;
     User(std::string& nick);
     ~User();

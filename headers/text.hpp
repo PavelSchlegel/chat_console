@@ -65,7 +65,7 @@ public:
     }
 
     friend std::istream& operator>>(std::istream& in, Text& text) {
-        if (text.m_str_Buf.size()) {
+        if (!text.m_str_Buf.empty()) {
             text.m_str_Buf.clear();
         }
         std::getline(in, text.m_str_Buf);

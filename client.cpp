@@ -35,52 +35,6 @@ void Client::message_accept(const Message& message) {
     std::cout << message.who << ":" << std::endl;
     std::cout << message.message << std::endl;
 }
-
-void Client::control() {
-    while (true) {
-        Text quest(COMMAND);
-        if(quest.get_text() == "login") {
-            try {
-                m_server->login(this);
-            } catch (std::exception& exception) {
-                std::cout << exception.what() << std::endl;
-            }
-        }
-
-        if(quest.get_text() == "new-user") {
-            try {
-                m_server->new_user(this);
-            } catch (std::exception& exception) {
-                std::cout << exception.what() << std::endl;
-            }
-        }
-
-        if(quest.get_text() == "size-user") {
-            std::cout << m_server->get_user_size() << std::endl;
-        }
-
-        if(quest.get_text() == "send-to") {
-            try {
-                m_server->send_to(this);
-            } catch (std::exception& excep) {
-                std::cout << excep.what() << std::endl;
-            }
-        }
-
-        if(quest.get_text() == "server-exit") {
-            m_server->server_exit(this);
-        }
-
-        if(quest.get_text() == "chat") {
-            m_server->send_to_chat(this);
-        }
-
-        if(quest.get_text() == "exit") {
-            break;
-        }
-
-        if(quest.get_text() == "online-p(") {
-            m_server->who_online_print(this);
-        }
-    }
+void Client::login(const std::string& nick, std::size_t hash) {
+    m_server->login(this, nick, hash);
 }

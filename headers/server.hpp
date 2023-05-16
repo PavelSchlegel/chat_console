@@ -8,7 +8,6 @@ class Server {
 private:
 
     std::set<Client*> m_clPtr;
-    //std::list<Client*> m_clients;
     //unorderer_map<std::string, User> m_users;
     std::list<User> m_users;
     std::list<Message> m_chat;
@@ -25,7 +24,7 @@ private:
 
 protected:
 
-    User* nickname_check(std::string& nick) noexcept {
+    User* nickname_check(const std::string& nick) noexcept {
         for (auto it = m_users.begin(); it != m_users.cend(); ++it) {
             if (it->m_nick == nick) {
                 return it->g_ptr();
@@ -33,17 +32,6 @@ protected:
         }
         return nullptr;
     }
-
-    /*
-    Client* client_search(Client* client) noexcept {
-        for (auto record : m_clients) {
-            if (record == client) {
-                return record;
-            }
-        }
-        return nullptr;
-    }
-    */
 
     Client* client_search(Client* client) noexcept {
         auto it = m_clPtr.find(client);
@@ -96,7 +84,6 @@ public:
     }
 
     void connect(Client* client) noexcept {
-        //m_clients.push_back(client);
         m_clPtr.insert(client);
     }
 
@@ -128,6 +115,28 @@ public:
         }
     }
 
+    void login(Client* client, const std::string& nick, const std::size_t hash) {
+        if (client_search(client)) {
+            if (!(client->m_user)) {
+                if (auto ptr = nickname_check(nick)) {
+                    if (ptr->m_pass_hash == hash) {
+                        client->m_user = ptr;
+                        if (!ptr->m_message.empty()) {
+                            client->new_message();
+                            push_message(client);
+                        }
+                    }
+                }
+            } else {
+                server_exit(client);
+                login(client, nick, hash);
+            }
+        } else {
+            connect(client);
+            login(client, nick, hash);
+        }
+    }
+    /*
     void login(Client* client) {
         if (client_search(client)) {
             if (!(client->m_user)) {
@@ -154,6 +163,7 @@ public:
             login(client);
         }
     }
+    */
 
     void who_online_print(Client* client) noexcept {
         if (client->m_user) {
