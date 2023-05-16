@@ -9,6 +9,7 @@ private:
 
     std::set<Client*> m_clPtr;
     //std::list<Client*> m_clients;
+    //unorderer_map<std::string, User> m_users;
     std::list<User> m_users;
     std::list<Message> m_chat;
 
@@ -103,17 +104,7 @@ public:
         client->m_user = nullptr;
         client->m_chat_pass = false;
         client->m_server = nullptr;
-        /*
-        for (auto it = m_clients.begin(); it != m_clients.end(); ++it) {
-            if (*it == client) {
-                m_clients.erase(it);
-            }
-        }
-        */
-        auto it = m_clPtr.find(client);
-        if (it != m_clPtr.end()) {
-            m_clPtr.erase(it);
-        }
+        m_clPtr.erase(client);
     }
 
     void server_exit(Client* client) noexcept {
