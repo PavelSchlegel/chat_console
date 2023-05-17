@@ -8,8 +8,7 @@ class Server {
 private:
 
     std::set<Client*> m_clPtr;
-    //unorderer_map<std::string, User> m_users;
-    std::list<User> m_users;
+    std::unordered_map<std::string, User> m_users;
     std::list<Message> m_chat;
 
     
@@ -25,12 +24,11 @@ private:
 protected:
 
     User* nickname_check(const std::string& nick) noexcept {
-        for (auto it = m_users.begin(); it != m_users.cend(); ++it) {
-            if (it->m_nick == nick) {
-                return it->g_ptr();
-            }
+        auto it = m_users.find(nick);
+        if (it == m_users.end()) {
+            return nullptr;
         }
-        return nullptr;
+        return it->second.g_ptr();
     }
 
     Client* client_search(Client* client) noexcept {
@@ -72,13 +70,13 @@ public:
 
     void user_print(Client* client) noexcept {
         for (auto& record : m_users) {
-            std::cout << record.get_nick() << std::endl;
+            std::cout << record.second.get_nick() << std::endl;
         }
     }
 
     std::ostream& get_user(std::ostream& out, Client* client) noexcept {
         for (auto& record : m_users) {
-            out << record.get_nick() << ", ";
+            out << record.second.get_nick() << ", ";
         }
         return out;
     }
@@ -99,19 +97,17 @@ public:
         client->m_chat_pass = false;
     }
 
-    void new_user(Client* client) {
-        if (!(client->m_user)) {
-            Text nickname(NICKNAME);
-            if (!(nickname_check(nickname.get_text()))) {
-                m_users.push_back(User(nickname.get_text()));
-                client->m_user = &m_users.back();
-                welcome(nickname.get_text());
-            } else {
-                throw std::runtime_error("Nickname is used!");
+    void new_user(Client* client, const std::string& nick, const std::size_t hash) {
+        if (!client->m_user) {
+            if (!nickname_check(nick)) {
+                m_users.emplace(User(nick, hash));
+                auto it = m_users.find(nick);
+                client->m_user = it->second.g_ptr();
+                welcome(nick);
             }
         } else {
             server_exit(client);
-            new_user(client);
+            new_user(client, nick, hash);
         }
     }
 
@@ -136,36 +132,8 @@ public:
             login(client, nick, hash);
         }
     }
-    /*
-    void login(Client* client) {
-        if (client_search(client)) {
-            if (!(client->m_user)) {
-                Text quest(NICKNAME);
-                if (auto ptr = nickname_check(quest.get_text())) {
-                    quest.set_text(PASSWORD);
-                    if (quest.get_text() == ptr->m_password) {
-                        client->m_user = ptr;
-                        welcome(ptr->get_nick());
-                        if (ptr->m_message.size()) {
-                            client->new_message();
-                            push_message(client);
-                        }
-                    }
-                } else {
-                    throw std::runtime_error("User was not fund!");
-                }
-            } else {
-                server_exit(client);
-                login(client);
-            }
-        } else {
-            connect(client);
-            login(client);
-        }
-    }
-    */
 
-    void who_online_print(Client* client) noexcept {
+    void who_online_print(Client* client) {
         if (client->m_user) {
             for (auto record : m_clPtr) {
                 if (record->m_server && record->m_user) {
@@ -175,24 +143,7 @@ public:
                 }
             }
         } else {
-            login(client);
-        }
-    }
-
-    std::ostream& get_user_online(std::ostream& out, Client* client) {
-        if (client->m_user) {
-            for (auto& record : m_clPtr) {
-                if ((client->m_user->m_nick != record->m_user->get_nick())) {
-                    if (record->m_server && record->m_user) {
-                        out << record->m_user->get_nick() << ", ";
-                    }
-                }
-            }
-            return out;
-        } else {
-            login(client);
-            get_user_online(out, client);
-            return out;
+            std::runtime_error("You are not login!");
         }
     }
 
@@ -206,8 +157,7 @@ public:
                 throw std::runtime_error("User was not fund");
             }
         } else {
-            login(client);
-            send_to(client);
+            std::runtime_error("You are not login!");
         }
     }
 
@@ -232,8 +182,7 @@ public:
                 send_to_chat(client);
             }
         } else {
-            login(client);
-            send_to_chat(client);
+            std::runtime_error("You are not login!");
         }
     }
 

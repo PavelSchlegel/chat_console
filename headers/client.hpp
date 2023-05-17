@@ -23,10 +23,8 @@ public:
     ~Client();
     void connect(Server* server);
     void disconnection();
-    void control();
     void new_privat_room();
-    //friend bool operator== (const Client& a, const Client& b);
-    //friend bool operator!= (const Client& a, const Client& b);
+    void login(const std::string& nick, std::size_t hash);
     friend class Server;
     friend class User;
 };
