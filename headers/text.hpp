@@ -6,7 +6,7 @@
 
 //для обьектов текст
 #define NICKNAME 0
-#define PASSWORD 1
+//#define PASSWORD 1
 #define MESSAGE 2
 #define COMMAND 3
 #define SEARCH_NICK 4

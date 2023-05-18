@@ -35,6 +35,7 @@ void Client::message_accept(const Message& message) {
     std::cout << message.who << ":" << std::endl;
     std::cout << message.message << std::endl;
 }
-void Client::login(const std::string& nick, std::size_t hash) {
-    m_server->login(this, nick, hash);
+
+Server* Client::get_s_ptr() noexcept {
+    return m_server;
 }

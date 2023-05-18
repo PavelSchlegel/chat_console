@@ -96,14 +96,15 @@ public:
         client->m_user = nullptr;
         client->m_chat_pass = false;
     }
-
-    void new_user(Client* client, const std::string& nick, const std::size_t hash) {
+    void new_user(Client* client, std::string& nick, std::size_t& hash) {
         if (!client->m_user) {
             if (!nickname_check(nick)) {
-                m_users.emplace(User(nick, hash));
+                m_users.insert({nick, User(nick, hash)});
                 auto it = m_users.find(nick);
                 client->m_user = it->second.g_ptr();
                 welcome(nick);
+            } else {
+                throw std::runtime_error("Nickname is used!");
             }
         } else {
             server_exit(client);
@@ -111,7 +112,7 @@ public:
         }
     }
 
-    void login(Client* client, const std::string& nick, const std::size_t hash) {
+    void login(Client* client, const std::string& nick, const std::size_t& hash) {
         if (client_search(client)) {
             if (!(client->m_user)) {
                 if (auto ptr = nickname_check(nick)) {
@@ -122,6 +123,8 @@ public:
                             push_message(client);
                         }
                     }
+                } else {
+                    throw std::runtime_error("User was not fund!");
                 }
             } else {
                 server_exit(client);
@@ -143,7 +146,7 @@ public:
                 }
             }
         } else {
-            std::runtime_error("You are not login!");
+            throw std::runtime_error("You are not login!");
         }
     }
 
@@ -157,7 +160,7 @@ public:
                 throw std::runtime_error("User was not fund");
             }
         } else {
-            std::runtime_error("You are not login!");
+            throw std::runtime_error("You are not login!");
         }
     }
 
@@ -172,7 +175,7 @@ public:
         }
     }
 
-    void send_to_chat(Client* client) noexcept {
+    void send_to_chat(Client* client) {
         if (client->m_user) {
             if (client->m_chat_pass) {
                 Text message(MESSAGE);
@@ -182,7 +185,7 @@ public:
                 send_to_chat(client);
             }
         } else {
-            std::runtime_error("You are not login!");
+            throw std::runtime_error("You are not login!");
         }
     }
 

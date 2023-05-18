@@ -24,7 +24,7 @@ public:
     void connect(Server* server);
     void disconnection();
     void new_privat_room();
-    void login(const std::string& nick, std::size_t hash);
+    Server* get_s_ptr() noexcept;
     friend class Server;
     friend class User;
 };
