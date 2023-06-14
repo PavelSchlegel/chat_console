@@ -3,6 +3,11 @@
 #include "include.hpp"
 #include "server.hpp"
 
+#if defined(__linux__)
+#include <sys/utsname.h>
+#endif
+
+void OS_Version();
 bool is_Up (char a);
 bool is_Low (char a);
 bool is_Digit(char a);

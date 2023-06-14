@@ -3,11 +3,12 @@
 
 #include "text.hpp"
 #include <vector>
+#include <chrono>
 
 class Client;
 
 struct Message {
-
+    std::chrono::time_point<std::chrono::system_clock> message_time;
     std::string message;
     std::string who;
 };

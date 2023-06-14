@@ -1,8 +1,8 @@
 cmake_minimum_required(VERSION 3.18)
-project(temp LANGUAGES CXX C)
+project(chat_console LANGUAGES CXX C)
 
-add_executable(temp main.cpp client.cpp user.cpp functions.cpp)
-set_target_properties(temp
+add_executable(chat_console main.cpp client.cpp user.cpp functions.cpp)
+set_target_properties(chat_console
     PROPERTIES
         CXX_STANDARD 17
         CXX_STANDARD_REQUIRED YES

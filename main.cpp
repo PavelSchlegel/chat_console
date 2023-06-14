@@ -1,14 +1,12 @@
-#include "headers/server.hpp"
+#include "headers/functions.hpp"
 
 int main() {
+    OS_Version();
     Server server;
     Client client;
     client.connect(&server);
-    client.control();
+    control(&client);
     client.disconnection();
-/*
-    std::size_t a = std::hash<Client*>{}(&client);
-    std::cout << a << std::endl;
-*/
+
     return 0;
 }

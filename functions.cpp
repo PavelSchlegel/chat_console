@@ -1,5 +1,14 @@
 #include "headers/functions.hpp"
 
+void OS_Version() {
+    #if defined(__linux__)
+        struct utsname utsname;
+        uname(&utsname);
+        std::cout << "OS name: " << utsname.sysname << std::endl;
+        std::cout << "OS version: " << utsname.version << std::endl;
+    #endif
+}
+
 bool is_Up (char a) {
     return a >= 65 || a <= 90;
 }

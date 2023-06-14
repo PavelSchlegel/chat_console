@@ -155,7 +155,7 @@ public:
             Text search(SEARCH_NICK);
             if (auto ptr = nickname_check(search.get_text())) {
                 search.set_text(MESSAGE);
-                ptr->m_message.push_back(Message{search.get_text(), client->m_user->get_nick()});
+                ptr->m_message.push_back(Message{std::chrono::system_clock::now(), search.get_text(), client->m_user->get_nick()});
             } else {
                 throw std::runtime_error("User was not fund");
             }
@@ -179,7 +179,7 @@ public:
         if (client->m_user) {
             if (client->m_chat_pass) {
                 Text message(MESSAGE);
-                m_chat.push_back(Message{message.get_text(), client->m_user->get_nick()});
+                m_chat.push_back(Message{std::chrono::system_clock::now(),message.get_text(), client->m_user->get_nick()});
             } else {
                 chat_connect(client);
                 send_to_chat(client);

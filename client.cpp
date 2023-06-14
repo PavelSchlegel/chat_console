@@ -26,6 +26,9 @@ void Client::new_message() {
 }
 
 void Client::message_accept(Message&& message) {
+    const std::time_t t_c = std::chrono::system_clock::to_time_t(message.message_time);
+    std::cout << "24 hours ago, the time was "
+              << std::put_time(std::localtime(&t_c), "%F %T.\n") << std::flush;
     std::cout << message.who << ":" << std::endl;
     std::cout << message.message << std::endl;
 }
