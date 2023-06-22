@@ -21,7 +21,7 @@ std::string get_pass() {
     std::string pass;
     std::getline(std::cin, pass);
     std::size_t hash = std::hash<std::string>{}(pass);
-    std::string hash_return {static_cast<char>(hash)};
+    std::string hash_return = std::to_string(hash);
     return hash_return;
 }
 

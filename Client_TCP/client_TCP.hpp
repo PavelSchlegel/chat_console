@@ -34,7 +34,7 @@ private:
     int bind_status;
     int connection_status;
     char buf[BUF_LENGTH];
-    int buf_index;
+    std::size_t buf_index;
 
 public:
 
