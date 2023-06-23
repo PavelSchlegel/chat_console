@@ -25,4 +25,4 @@ set_target_properties(Server_TCP
         C_EXTENSIONS YES
 )
 
-link_libraries(Server_TCP lib)
+target_link_libraries(Server_TCP lib)
