@@ -1,13 +1,14 @@
 #include "server_TCP.hpp"
+#include "receiver.hpp"
 
 int main() {
 
     Server server;
-    Client client; //virtual
-    try {
-        client.client_start();
-    } catch (std::runtime_error error) {
-        std::cout << "Error:" << error.what() << std::endl;
+    Receiver receiver(&server);
+    while (1) {
+        if (receiver.data_constructor()) {
+            break;
+        }
     }
     return 0;
 }

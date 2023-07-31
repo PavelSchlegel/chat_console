@@ -1,7 +1,7 @@
 
 #include "user.hpp"
 #include <iostream>
-#include "virtual_client.hpp"
+#include "client.hpp"
 
 User::User(const std::string& nick, const std::size_t hash)
 :m_nick(nick)

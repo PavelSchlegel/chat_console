@@ -1,5 +1,5 @@
 #include "server_TCP.hpp"
-#include "virtual_client.hpp"
+#include "client.hpp"
 
 Server::Server() {
 
@@ -19,11 +19,7 @@ bool Server::chat_password() {
 }
 */
 User* Server::nickname_check(const std::string& nick) noexcept {
-    auto it = m_users.find(nick);
-    if (it == m_users.end()) {
-        return nullptr;
-    }
-    return it->second.g_ptr();
+    return m_users.find(nick);
 }
 
 Client* Server::client_search(Client* client) noexcept {
@@ -38,6 +34,7 @@ void Server::push_message(Client* client) noexcept {
     for (auto& record : client->m_user->m_message) {
         client->message_accept(std::move(record));
     }
+    client->message_accept(Message{"END", "END"});
     client->m_user->m_message.clear();
 }
 /*
@@ -51,9 +48,7 @@ void Server::chat_read(Client* client) noexcept {
 void Server::welcome(std::string_view nickname) noexcept {
     std::cout << "\033[31mWelcome :\033[37m" << nickname << std::endl;
 }
-
-
-
+/*
 const std::size_t Server::get_user_size() noexcept {
     return m_users.size();
 }
@@ -70,6 +65,7 @@ std::ostream& Server::get_user(std::ostream& out, Client* client) noexcept {
     }
     return out;
 }
+*/
 
 void Server::connect(Client* client) noexcept {
     m_clPtr.insert(client);
@@ -78,7 +74,7 @@ void Server::connect(Client* client) noexcept {
 void Server::disconnection(Client* client) noexcept {
     client->m_user = nullptr;
     client->m_chat_pass = false;
-    client->m_server = nullptr;
+    //client->m_server = nullptr;
     m_clPtr.erase(client);
 }
 
@@ -90,9 +86,7 @@ void Server::server_exit(Client* client) noexcept {
 void Server::new_user(Client* client, std::string& nick, std::size_t& hash) {
     if (!client->m_user) {
         if (!nickname_check(nick)) {
-            m_users.insert({nick, User(nick, hash)});
-            auto it = m_users.find(nick);
-            client->m_user = it->second.g_ptr();
+            client->m_user = m_users.insert(nick, hash);
             welcome(nick);
         } else {
             throw std::runtime_error("Nickname is used!");
@@ -126,7 +120,7 @@ void Server::login(Client* client, const std::string& nick, const std::size_t& h
         login(client, nick, hash);
     }
 }
-
+/*
 void Server::who_online_print(Client* client) {
     if (client->m_user) {
         for (auto record : m_clPtr) {
@@ -140,13 +134,13 @@ void Server::who_online_print(Client* client) {
         throw std::runtime_error("You are not login!");
     }
 }
-/*
-void Server::send_to(Client* client) {
+*/
+void Server::send_to(Client* client, const std::string& nick_to, const std::string& message) {
     if (client->m_user) {
-        Text search(SEARCH_NICK);
-        if (auto ptr = nickname_check(search.get_text())) {
-            search.set_text(MESSAGE);
-            ptr->m_message.push_back(Message{std::chrono::system_clock::now(), search.get_text(), client->m_user->get_nick()});
+        //Text search(SEARCH_NICK);
+        if (auto ptr = nickname_check(nick_to)) {
+            //search.set_text(MESSAGE);
+            ptr->m_message.push_back(Message{/*std::chrono::system_clock::now(), search.get_text(),*/message, client->m_user->get_nick()});
         } else {
             throw std::runtime_error("User was not fund");
         }
@@ -154,6 +148,7 @@ void Server::send_to(Client* client) {
         throw std::runtime_error("You are not login!");
     }
 }
+/*
 
 void Server::chat_connect(Client* client) noexcept {
     if (client->m_user) {

@@ -3,7 +3,7 @@ project(Server_TCP LANGUAGES CXX C)
 
 add_executable(Server_TCP main.cpp)
 
-add_library(lib STATIC server_TCP.cpp user.cpp virtual_client.cpp server_TCP.hpp user.hpp virtual_client.hpp)
+add_library(lib STATIC server_TCP.cpp user.cpp client.cpp receiver.cpp server_TCP.hpp user.hpp client.hpp receiver.hpp)
 
 set_target_properties(lib
     PROPERTIES

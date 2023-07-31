@@ -1,10 +1,8 @@
-#pragma once
-/*
 #ifndef SERVER
 #define SERVER
-*/
 
-#include "virtual_client.hpp"
+
+#include "client.hpp"
 #include <string>
 #include <string_view>
 #include <unordered_map>
@@ -17,7 +15,8 @@ class Server {
 private:
 
     std::set<Client*> m_clPtr;
-    std::unordered_map<std::string, User> m_users;
+    //Usesr_db m_users;
+    //std::unordered_map<std::string, User> m_users;
     std::list<Message> m_chat;
     bool chat_password();
 
@@ -41,10 +40,10 @@ public:
     void server_exit(Client* client) noexcept;
     void new_user(Client* client, std::string& nick, std::size_t& hash);
     void login(Client* client, const std::string& nick, const std::size_t& hash);
-    void who_online_print(Client* client);
-    void send_to(Client* client);
-    void chat_connect(Client* client) noexcept;
-    void send_to_chat(Client* client);
+    //void who_online_print(Client* client);
+    void send_to(Client* client, const std::string& nick_to, const std::string& message);
+    //void chat_connect(Client* client) noexcept;
+   //void send_to_chat(Client* client);
     friend class User;
 };
-//#endif
+#endif

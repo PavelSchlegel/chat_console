@@ -1,14 +1,16 @@
-#include "client_TCP.hpp"
+#include "client.hpp"
 
-int main() {
-    OS_version();
+int main() 
+{
     Client client;
-    try {
-        client.client_start();
-        client.new_user();
-        client.disconnection();
-    } catch (std::runtime_error error) {
-        std::cout << "ERROR:" << error.what() << std::endl;
-    }
+    client.test();
+    client.new_user();
+    client.quit();
+    client.new_user();
+    client.send_to();
+    client.quit();
+    client.login();
+    client.quit();
+
     return 0;
 }
